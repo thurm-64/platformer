@@ -86,7 +86,7 @@ document.onmouseup = function() {
    var defaultkeys =  [
 		{id: 0, name:"slow",colour: '#FFF', solid: 0, friction: {x: 0.3, y:0.1}},
 		{id: 1, name:"air",colour: '#888', solid: 0},
-		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0, texture: "textures/floor.png"},
+		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0, texture: "/textures/floor.png"},
 		{id: 3, name:"water",colour: 'rgba(121, 220, 242, 0.4)',friction: {x: 0.9,y: 0.9},gravity: {x: 0,y: 0.1},jump: 1,fore: 1}, 
 		{id: 4, name:"double",colour: '#777',jump: 1},
 		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0},
@@ -576,7 +576,7 @@ Clarity.prototype.move_player = function () {
         if(bounce == 1.25) {
          playsound("57uBnWThQYzkmJKU7FvVZigURnfjZe1KW2hzbNLLx313ygsVx3NYPy65LDiBTKddkNrtXeu1cYGq9jzXu9q8G2uyVHxu6xnRsRYhBPoYXXfkFJaJh6tXTxPCs");   
         }
-		if (((bottom1.solid || bottom2.solid) && !tile.jump) || (this.current_map.movement_speed.jump < 0 && (top1.solid || top2.solid))) {
+		if ((this.current_map.movement_speed.jump >= 0 && (bottom1.solid || bottom2.solid) && !tile.jump) || (this.current_map.movement_speed.jump < 0 && (top1.solid || top2.solid))) {
 			
 			this.player.on_floor = true;
 			this.player.can_jump = true;

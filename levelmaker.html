@@ -419,7 +419,7 @@ return;
 if(tile.texture != undefined) {
 	var img = new Image();
 	img.src = tile.texture;
-        ctx.drawImage(img,x,y)
+	img.onLoad = function(ev) { ctx.drawImage(img,x,y)};
 } else {
 	context.fillStyle = tile.colour;
 	context.fillRect(

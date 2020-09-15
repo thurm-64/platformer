@@ -1,5 +1,6 @@
 
 <canvas id="canvas"></canvas>
+<img id="floor" src="textures/floor.png"/>
 <style>
   * {
   margin: 0;
@@ -417,9 +418,8 @@ return;
 	
 
 if(tile.texture != undefined) {
-	var img = new Image();
-	img.src = tile.texture;
-	img.onLoad = function(ev) { ctx.drawImage(img,x,y)};
+	var img = document.getElementById(tile.name);
+	ctx.drawImage(img,x,y)
 } else {
 	context.fillStyle = tile.colour;
 	context.fillRect(

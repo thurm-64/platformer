@@ -86,7 +86,7 @@ document.onmouseup = function() {
    var defaultkeys =  [
 		{id: 0, name:"slow",colour: '#FFF', solid: 0, friction: {x: 0.3, y:0.1}},
 		{id: 1, name:"air",colour: '#888', solid: 0},
-		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0},
+		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0, texture:"textures/floor.png"},
 		{id: 3, name:"water",colour: 'rgba(121, 220, 242, 0.4)',friction: {x: 0.9,y: 0.9},gravity: {x: 0,y: 0.1},jump: 1,fore: 1}, 
 		{id: 4, name:"double",colour: '#777',jump: 1},
 		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0},
@@ -416,45 +416,19 @@ return;
 }
 
 
-    if(tile.sphere == undefined) {
-if(tile.door != undefined) {
-        context.fillStyle = "#555";
-	context.fillRect(
-		x,
-		y,
-		this.tile_size,
-		this.tile_size
-	);
-
-    } else {
+if(tile.texture != undefined) {
+        ctx.drawImage(tile.texture,x,y)
+} else {
 	context.fillStyle = tile.colour;
 	context.fillRect(
 		x,
 		y,
 		this.tile_size,
 		this.tile_size
-	);
-}
-    } else {
-        context.fillStyle = "#888";
-	context.fillRect(
-		x,
-		y,
-		this.tile_size,
-		this.tile_size
-	);
-        context.fillStyle = tile.colour;
-        
-        context.moveTo(x + (this.tile_size / 2), y + (this.tile_size / 2));
-        context.beginPath();
-        context.arc(x + (this.tile_size / 2), y + (this.tile_size / 2), this.tile_size / 2, 0, 2 * Math.PI, false);
-        context.fill();
-        context.fillStyle = "#888";
-    }
-ctx.strokeStyle ="#888";
+
 
         context.fillStyle = "#888";
-	
+		}
 }
 
 Clarity.prototype.draw_map = function (context, fore) {

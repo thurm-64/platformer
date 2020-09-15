@@ -1,0 +1,967 @@
+
+<canvas id="canvas"></canvas>
+<style>
+  * {
+  margin: 0;
+  padding: 0;
+}
+    @keyframes spin { 0% { -webkit-transform: rotate(180deg); transform:rotate(180deg); } 100% { -webkit-transform: rotate(180deg); transform:rotate(180deg); } }
+    @keyframes spinrev {100% { -webkit-transform: rotate(0deg); transform:rotate(0deg); } }
+
+tr{
+    color: transparent;
+    }
+body {
+  background: #f2f2f2;
+}
+
+canvas {
+  position:absolute;
+   right:0px;
+  display:block;
+  margin: 40px auto 20px;
+  border: 1px solid #333;
+  box-shadow: 0 0 16px 2px rgba(0,0,0,0.8);
+}
+
+p, a {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 19px;
+  color: #777;
+  display: block;
+  width: 400px;
+  margin: 0 auto;
+  text-align: center;
+  text-decoration:none;
+}
+
+.info {
+  margin:14px auto;
+  text-align: justify;
+  font-size: 18px;
+  color: #999;
+}
+
+a {
+  color:#3377ee;
+}
+</style>
+<div id = "table" style="position:absolute;top:0px;left:0px"></div>
+<script type='text/javascript' src='https://www.midijs.net/lib/midi.js'></script>
+
+<script src="riffwave.js"></script> <script src="sfxr.js"></script>
+<script>
+    
+/*
+Copyright (c) 2013 dissimulate at codepen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+/* Customisable map data */
+
+    var mouseDown = 0;
+document.onmousedown = function() { 
+  ++mouseDown;
+}
+document.onmouseup = function() {
+  --mouseDown;
+}
+   var defaultkeys =  [
+		{id: 0, name:"slow",colour: '#FFF', solid: 0, friction: {x: 0.3, y:0.1}},
+		{id: 1, name:"air",colour: '#888', solid: 0},
+		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0},
+		{id: 3, name:"water",colour: 'rgba(121, 220, 242, 0.4)',friction: {x: 0.9,y: 0.9},gravity: {x: 0,y: 0.1},jump: 1,fore: 1}, 
+		{id: 4, name:"double",colour: '#777',jump: 1},
+		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0},
+		{id: 6, name:"air",colour: '#888', solid: 0},
+		{id: 7, name:"finish",colour: '#FADF73',solid: 0,script: 'next_level'},
+		{id: 8, name:"lava",colour: '#C93232',solid: 0,script: 'death'},
+		{id: 9, name:"double jump",colour: '#525252',solid: 0,bounce: 0.35},//killer
+        {id: 10, name:"grav ^",colour: '#F66',solid: 0, bounce: 0, script: 'gravup'},
+        {id: 11, name:"grav v",colour: '#6F6',solid: 0, bounce: 0, script: 'gravdown'},
+               
+        {id: 12, name:"coin",colour: '#FF0', solid: 0, sphere: true, script: 'coincollect'},
+        {id: 13, name:"vines",colour: '#080', solid: 0, gravity: {x:0,y:0} },
+        {id: 14, name:"door-yellow",colour: '#FF0', solid: 1, door: true, hidden: false},
+        {id: 15, name:"btn-yellow",colour: '#FF0', solid: 0, script: 'yellowbtn'},
+        {id: 16, name:"door-blue",colour: '#0FF', solid: 1, door: true, hidden: false},
+        {id: 17, name:"btn-blue",colour: '#0FF', solid: 0, script: 'bluebtn'},
+        {id: 17, name:"air",colour: '#888', solid: 0},
+        {id: 18, name:"air",colour: '#888', solid: 0},
+        {id: 19, name:"air",colour: '#888', solid: 0}
+	]; 
+var map = {
+
+	tile_size: 16,
+
+	/*
+	
+	Key vairables:
+	
+	id	   [required] - an integer that corresponds with a tile in the data array.
+	colour   [required] - any javascript compatible colour variable.
+	solid	[optional] - whether the tile is solid or not, defaults to false.
+	bounce   [optional] - how much velocity is preserved upon hitting the tile, 0.5 is half.
+	jump	 [optional] - whether the player can jump while over the tile, defaults to false.
+	friction [optional] - friction of the tile, must have X and Y values (e.g {x:0.5, y:0.5}).
+	gravity  [optional] - gravity of the tile, must have X and Y values (e.g {x:0.5, y:0.5}).
+	fore	 [optional] - whether the tile is drawn in front of the player, defaults to false.
+	script   [optional] - refers to a script in the scripts section, executed if it is touched.
+	
+	*/
+	
+	keys: defaultkeys.slice(),
+	/* An array representing the map tiles. Each number corresponds to a key */
+	/*
+	1 air
+	2 ground
+	3 water
+	4 elevator block
+	5 trampoline 
+	6 idk
+	7 finish 
+	8 death
+	*/
+	data: [
+[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
+],
+
+	/* Default gravity of the map */
+	
+	gravity: {
+		x: 0,
+		y: 0.3
+	},
+	
+	/* Velocity limits */
+
+	vel_limit: {
+		x: 2,
+		y: 16
+	},
+
+	/* Movement speed when the key is pressed */
+	
+	movement_speed: {
+		jump: 6,
+		left: 0.3,
+		right: 0.3
+	},
+	
+	/* The coordinates at which the player spawns and the colour of the player */
+
+	player: {
+		x: 2,
+		y: 2,
+		colour: '#FF9900'
+	},
+	
+	/* scripts refered to by the "script" variable in the tile keys */
+
+	scripts: {
+		/* you can just use "this" instead of your engine variable ("game"), but Codepen doesn't like it */
+		change_colour: 'game.player.colour = "#"+(Math.random()*0xFFFFFF<<0).toString(16);',
+		/* you could load a new map variable here */
+		next_level: 'window.location.href="level9.html"',
+		death: 'deathAnimation()',
+        gravup: 'game.current_map.gravity= {x: 0, y: -0.3}; canvas.style = "animation:spin 0.5s 1 ease-in-out; animation-fill-mode: forwards"; game.current_map.movement_speed.jump = -6; game.current_map.movement_speed.left = -0.3; game.current_map.movement_speed.right = -0.3; playsound("1wPvSggPBcDFxBPFjpmBnoZ6XLrMNaV5xSZn5TFc79xbo9TTG9DaWasbfvjHYc9rGUS5XwY5wL9SaizSf5tvxQ5qhfA84WbvMrYh7nNeoyg5U5CHaiJ88qhBD")',
+         gravdown: 'canvas.style = "animation:spinrev 0.5s 1 ease-in-out; animation-fill-mode: forwards"; game.current_map.gravity= {x: 0, y: 0.3}; game.current_map.movement_speed.jump = 6; game.current_map.movement_speed.left = 0.3; game.current_map.movement_speed.right = 0.3;  playsound("1wPvSggPBcDFxBPFjpmBnoXf9R53isDBNt2JTuWMzN4SqfF46a4gcKcEWknNqtuKYFdRJFdi5h17FSh52Mrn2KVW4saS21cbwiopDW3k1pLxNvUHCK2kBwmCb")',
+         gravleft: 'game.current_map.gravity= {x: -0.3, y: 0}',
+         gravright: 'game.current_map.gravity= {x: 0.3, y: 0}',
+		 coincollect: 'collectCoin(game)',
+        
+		bluebtn: 'game.current_map.keys[14].solid = false; game.current_map.keys[14].hidden = true; game.current_map.keys[16].solid = true; game.current_map.keys[16].hidden = false; playsound("111112UYEY3rfGJmVcdVRETfrBjXMjs7FHUTbyMdbSG6Ptdyn9THS5dvvEFovmi3aqtGdRfcGpNfFneSdWNpHenp4qbLSTsNirjbM5zdvcytNTkSsmHdL6Tq")',
+               yellowbtn: 'game.current_map.keys[16].solid = false; game.current_map.keys[16].hidden = true; game.current_map.keys[14].solid = true; game.current_map.keys[14].hidden = false; playsound("111112UYEY3rfGJmVcdVREZEojtTu5BFm2zFGNQCbyoBbCGEjGwPPsfNfDfcXTaJBC7mDHfV3CqwHBVtR7uJLSZeNYi4DLf8YbSbdkbD8WcLY37UdKhCgDJo")'
+	}
+};
+
+/* Clarity engine */
+function collectCoin(gamedat) {
+    var xpos = Math.round(gamedat.player.loc.x / map.tile_size);
+    var ypos = Math.round(gamedat.player.loc.y / map.tile_size);
+    try {
+    gamedat.current_map.data[ypos][xpos] = {id: 1, name:"air",colour: '#888', solid: 0};
+} catch(e) {window.alert(e)}
+    playsound("3cymiaBT76zCm6KRP98bB8QZhsmPoYWN1KqrDXVozDvtKdT1Yo5HqqXqQiszGriteXkcNZgdDcXWbPB2G1nch6hM4yXUxRgG7kfiqgn7KeTj9BzJYshqS8qjM");
+}
+var Clarity = function () {
+
+	this.alert_errors   = false;
+	this.log_info	   = true;
+	this.tile_size	  = 16;
+	this.limit_viewport = false;
+	this.jump_switch	= 0;
+	
+	this.viewport = {
+		x: 200,
+		y: 200
+	};
+	
+	this.camera = {
+		x: 0,
+		y: 0
+	};
+	
+	this.key = {
+		left: false,
+		right: false,
+		up: false
+	};
+
+	this.player = {
+
+		loc: {
+			x: 0,
+			y: 0
+		},
+		
+		vel: {
+			x: 0,
+			y: 0
+		},
+		
+		can_jump: true
+	};
+
+	window.onkeydown = this.keydown.bind(this);
+	window.onkeyup   = this.keyup.bind(this);
+};
+
+Clarity.prototype.error = function (message) {
+
+	if (this.alert_errors) alert(message);
+	if (this.log_info) console.log(message);
+};
+
+Clarity.prototype.log = function (message) {
+
+	if (this.log_info) console.log(message);
+};
+
+Clarity.prototype.set_viewport = function (x, y) {
+
+	this.viewport.x = x;
+	this.viewport.y = y;
+};
+
+Clarity.prototype.keydown = function (e) {
+
+	var _this = this;
+
+	switch (e.keyCode) {
+	case 37:
+		_this.key.left = true;
+		break;
+	case 38:
+		_this.key.up = true;
+		break;
+	case 39:
+		_this.key.right = true;
+		break;
+	}
+};
+
+Clarity.prototype.keyup = function (e) {
+
+	var _this = this;
+
+	switch (e.keyCode) {
+	case 37:
+		_this.key.left = false;
+		break;
+	case 38:
+		_this.key.up = false;
+		break;
+	case 39:
+		_this.key.right = false;
+		break;
+	}
+};
+
+Clarity.prototype.load_map = function (map) {
+
+	if (typeof map	  === 'undefined'
+	 || typeof map.data === 'undefined'
+	 || typeof map.keys === 'undefined') {
+
+		this.error('Error: Invalid map data!');
+
+		return false;
+	}
+
+	this.current_map = map;
+
+	this.current_map.background = '#888';
+	this.current_map.gravity = map.gravity || {x: 0, y: 0.3};
+	this.tile_size = map.tile_size || 16;
+map.keys[14].solid = true;
+	map.keys[14].hidden = false;
+map.keys[16].hidden = true;
+map.keys[16].solid = false;
+	this.current_map.keys = map.keys
+	
+	var _this = this;
+	
+	this.current_map.width = 0;
+	this.current_map.height = 0;
+
+	
+	this.current_map.keys.forEach(function (key) {
+
+		map.data.forEach(function (row, y) {
+			
+			_this.current_map.height = Math.max(_this.current_map.height, y);
+
+			row.forEach(function (tile, x) {
+				
+				_this.current_map.width = Math.max(_this.current_map.width, x);
+
+				if (tile == key.id)
+					_this.current_map.data[y][x] = key;
+			});
+		});
+	});
+	
+	this.current_map.width_p = this.current_map.width * this.tile_size;
+	this.current_map.height_p = this.current_map.height * this.tile_size;
+
+	this.player.loc.x = map.player.x * this.tile_size || 0;
+	this.player.loc.y = (this.current_map.height - 2) * this.tile_size;
+	this.player.colour = map.player.colour || '#000';
+    this.current_map.movement_speed.jump = 6;
+	this.key.left  = false;
+	this.key.up	= false;
+	this.key.right = false;
+	
+	this.camera = {
+		x: 0,
+		y: 0
+	};
+	
+	this.player.vel = {
+		x: 0,
+		y: 0
+	};
+    this.current_map.movement_speed.jump = 6;
+    game.current_map.movement_speed.left = 0.3; game.current_map.movement_speed.right = 0.3; 
+    this.current_map.gravity = {x:0, y:0.3};
+    canvas.style = "transform:rotate(0deg);"
+	this.log('Successfully loaded map data.');
+    //makeTable();
+	return true;
+};
+
+Clarity.prototype.get_tile = function (x, y) {
+
+	return (this.current_map.data[y] && this.current_map.data[y][x]) ? this.current_map.data[y][x] : 0;
+};
+
+Clarity.prototype.draw_tile = function (x, y, tile, context) {
+if(tile.name == "lava" && Math.random() > 0.99) {
+		explosions.push(new bubblelava(x,y));
+drawExplosion();
+	}
+	if (!tile || !tile.colour ) return;
+if(tile.hidden == true) {
+	 context.fillStyle = "#888";
+	context.fillRect(
+		x,
+		y,
+		this.tile_size,
+		this.tile_size
+);
+return;
+}
+
+
+    if(tile.sphere == undefined) {
+if(tile.door != undefined) {
+        context.fillStyle = "#555";
+	context.fillRect(
+		x,
+		y,
+		this.tile_size,
+		this.tile_size
+	);
+ctx.strokeStyle = tile.colour;
+context.moveTo(x, y);
+context.lineTo(x+this.tile_size, y+this.tile_size);
+       context.stroke();
+context.moveTo(x+this.tile_size, y);
+context.lineTo(x, y+this.tile_size);
+       context.stroke();
+
+    } else {
+	context.fillStyle = tile.colour;
+	context.fillRect(
+		x,
+		y,
+		this.tile_size,
+		this.tile_size
+	);
+}
+    } else {
+        context.fillStyle = "#888";
+	context.fillRect(
+		x,
+		y,
+		this.tile_size,
+		this.tile_size
+	);
+        context.fillStyle = tile.colour;
+        
+        context.moveTo(x + (this.tile_size / 2), y + (this.tile_size / 2));
+        context.beginPath();
+        context.arc(x + (this.tile_size / 2), y + (this.tile_size / 2), this.tile_size / 2, 0, 2 * Math.PI, false);
+        context.fill();
+        context.fillStyle = "#888";
+    }
+ctx.strokeStyle ="#888";
+
+        context.fillStyle = "#888";
+	
+}
+
+Clarity.prototype.draw_map = function (context, fore) {
+
+	for (var y = 0; y < this.current_map.data.length; y++) {
+
+		for (var x = 0; x < this.current_map.data[y].length; x++) {
+
+			if ((!fore && !this.current_map.data[y][x].fore) || (fore && this.current_map.data[y][x].fore)) {
+
+				var t_x = (x * this.tile_size) - this.camera.x;
+				var t_y = (y * this.tile_size) - this.camera.y;
+				
+				if(t_x < -this.tile_size
+				|| t_y < -this.tile_size
+				|| t_x > this.viewport.x
+				|| t_y > this.viewport.y) continue;
+				
+				this.draw_tile(
+					t_x,
+					t_y,
+					this.current_map.data[y][x],
+					context
+				);
+			}
+		}
+	}
+
+	if (!fore) this.draw_map(context, true);
+};
+
+Clarity.prototype.move_player = function () {
+
+	var tX = this.player.loc.x + this.player.vel.x;
+	var tY = this.player.loc.y + this.player.vel.y;
+
+	var offset = Math.round((this.tile_size / 2) - 1);
+
+	var tile = this.get_tile(
+		Math.round(this.player.loc.x / this.tile_size),
+		Math.round(this.player.loc.y / this.tile_size)
+	);
+	 
+	if(tile.gravity) {
+		
+		this.player.vel.x += tile.gravity.x;
+		this.player.vel.y += tile.gravity.y;
+		
+	} else {
+		
+		this.player.vel.x += this.current_map.gravity.x;
+		this.player.vel.y += this.current_map.gravity.y;
+	}
+	
+	if (tile.friction) {
+
+		this.player.vel.x *= tile.friction.x;
+		this.player.vel.y *= tile.friction.y;
+	}
+
+	var t_y_up   = Math.floor(tY / this.tile_size);
+	var t_y_down = Math.ceil(tY / this.tile_size);
+	var y_near1  = Math.round((this.player.loc.y - offset) / this.tile_size);
+	var y_near2  = Math.round((this.player.loc.y + offset) / this.tile_size);
+
+	var t_x_left  = Math.floor(tX / this.tile_size);
+	var t_x_right = Math.ceil(tX / this.tile_size);
+	var x_near1   = Math.round((this.player.loc.x - offset) / this.tile_size);
+	var x_near2   = Math.round((this.player.loc.x + offset) / this.tile_size);
+
+	var top1	= this.get_tile(x_near1, t_y_up);
+	var top2	= this.get_tile(x_near2, t_y_up);
+	var bottom1 = this.get_tile(x_near1, t_y_down);
+	var bottom2 = this.get_tile(x_near2, t_y_down);
+	var left1   = this.get_tile(t_x_left, y_near1);
+	var left2   = this.get_tile(t_x_left, y_near2);
+	var right1  = this.get_tile(t_x_right, y_near1);
+	var right2  = this.get_tile(t_x_right, y_near2);
+
+
+	if (tile.jump && this.jump_switch > 15) {
+
+		this.player.can_jump = true;
+		
+		this.jump_switch = 0;
+		
+	} else this.jump_switch++;
+	
+	this.player.vel.x = Math.min(Math.max(this.player.vel.x, -this.current_map.vel_limit.x), this.current_map.vel_limit.x);
+	this.player.vel.y = Math.min(Math.max(this.player.vel.y, -this.current_map.vel_limit.y), this.current_map.vel_limit.y);
+	
+	this.player.loc.x += this.player.vel.x;
+	this.player.loc.y += this.player.vel.y;
+	
+	this.player.vel.x *= .9;
+	
+	if (left1.solid || left2.solid || right1.solid || right2.solid) {
+
+		/* fix overlap */
+
+		while (this.get_tile(Math.floor(this.player.loc.x / this.tile_size), y_near1).solid
+			|| this.get_tile(Math.floor(this.player.loc.x / this.tile_size), y_near2).solid)
+			this.player.loc.x += 0.1;
+
+		while (this.get_tile(Math.ceil(this.player.loc.x / this.tile_size), y_near1).solid
+			|| this.get_tile(Math.ceil(this.player.loc.x / this.tile_size), y_near2).solid)
+			this.player.loc.x -= 0.1;
+
+		/* tile bounce */
+
+		var bounce = 0;
+
+		if (left1.solid && left1.bounce > bounce) bounce = left1.bounce;
+		if (left2.solid && left2.bounce > bounce) bounce = left2.bounce;
+		if (right1.solid && right1.bounce > bounce) bounce = right1.bounce;
+		if (right2.solid && right2.bounce > bounce) bounce = right2.bounce;
+  
+		this.player.vel.x *= -bounce || 0;
+		
+	}
+	
+	if (top1.solid || top2.solid || bottom1.solid || bottom2.solid) {
+
+		/* fix overlap */
+		
+		while (this.get_tile(x_near1, Math.floor(this.player.loc.y / this.tile_size)).solid
+			|| this.get_tile(x_near2, Math.floor(this.player.loc.y / this.tile_size)).solid)
+			this.player.loc.y += 0.1;
+
+		while (this.get_tile(x_near1, Math.ceil(this.player.loc.y / this.tile_size)).solid
+			|| this.get_tile(x_near2, Math.ceil(this.player.loc.y / this.tile_size)).solid)
+			this.player.loc.y -= 0.1;
+
+		/* tile bounce */
+		
+		var bounce = 0;
+		
+		if (top1.solid && top1.bounce > bounce) bounce = top1.bounce;
+		if (top2.solid && top2.bounce > bounce) bounce = top2.bounce;
+		if (bottom1.solid && bottom1.bounce > bounce) bounce = bottom1.bounce;
+		if (bottom2.solid && bottom2.bounce > bounce) bounce = bottom2.bounce;
+		
+		this.player.vel.y *= -bounce || 0;
+        if(bounce == 1.25) {
+         playsound("57uBnWThQYzkmJKU7FvVZigURnfjZe1KW2hzbNLLx313ygsVx3NYPy65LDiBTKddkNrtXeu1cYGq9jzXu9q8G2uyVHxu6xnRsRYhBPoYXXfkFJaJh6tXTxPCs");   
+        }
+		if (((bottom1.solid || bottom2.solid) && !tile.jump) || (this.current_map.movement_speed.jump < 0 && (top1.solid || top2.solid))) {
+			
+			this.player.on_floor = true;
+			this.player.can_jump = true;
+		} else {
+         this.player.can_jump = false;   
+        }
+		
+	}
+	
+	// adjust camera
+
+	var c_x = Math.round(this.player.loc.x - this.viewport.x/2);
+	var c_y = Math.round(this.player.loc.y - this.viewport.y/2);
+	var x_dif = Math.abs(c_x - this.camera.x);
+	var y_dif = Math.abs(c_y - this.camera.y);
+	
+	if(x_dif > 5) {
+		
+		var mag = Math.round(Math.max(1, x_dif * 0.1));
+	
+		if(c_x != this.camera.x) {
+			
+			this.camera.x += c_x > this.camera.x ? mag : -mag;
+			
+			if(this.limit_viewport) {
+				
+				this.camera.x = 
+					Math.min(
+						this.current_map.width_p - this.viewport.x + this.tile_size,
+						this.camera.x
+					);
+				
+				this.camera.x = 
+					Math.max(
+						0,
+						this.camera.x
+					);
+			}
+		}
+	}
+	
+	if(y_dif > 5) {
+		
+		var mag = Math.round(Math.max(1, y_dif * 0.1));
+		
+		if(c_y != this.camera.y) {
+			
+			this.camera.y += c_y > this.camera.y ? mag : -mag;
+		
+			if(this.limit_viewport) {
+				
+				this.camera.y = 
+					Math.min(
+						this.current_map.height_p - this.viewport.y + this.tile_size,
+						this.camera.y
+					);
+				
+				this.camera.y = 
+					Math.max(
+						0,
+						this.camera.y
+					);
+			}
+		}
+	}
+	
+	if(this.last_tile != tile.id && tile.script) {
+	
+		eval(this.current_map.scripts[tile.script]);
+	}
+	
+	this.last_tile = tile.id;
+};
+
+Clarity.prototype.update_player = function () {
+
+	if (this.key.left) {
+
+		if (this.player.vel.x > -this.current_map.vel_limit.x)
+			this.player.vel.x -= this.current_map.movement_speed.left;
+	}
+
+	if (this.key.up) {
+
+		if (this.player.can_jump && this.player.vel.y > -this.current_map.vel_limit.y) {
+			playsound("3mcfzLam1jSZEep5Yx87pTjFS3ht9xJbQdFxuN6iCCR8SvdVRuZK8TbZ8L4kpvoyGXy3hYJvPs63XjzThP3otj992ZbfwpUrf7zsCPkbowET4bZ6UhY8AuAko");
+			this.player.vel.y -= this.current_map.movement_speed.jump;
+			this.player.can_jump = false;
+		}
+	}
+
+	if (this.key.right) {
+
+		if (this.player.vel.x < this.current_map.vel_limit.x)
+			this.player.vel.x += this.current_map.movement_speed.left;
+	}
+
+	this.move_player();
+};
+
+Clarity.prototype.draw_player = function (context) {
+
+	context.fillStyle = this.player.colour;
+
+	 context.beginPath();
+
+	context.arc(
+		this.player.loc.x + this.tile_size / 2 - this.camera.x,
+		this.player.loc.y + this.tile_size / 2 - this.camera.y,
+		this.tile_size / 2 - 1,
+		0,
+		Math.PI * 2
+	);
+
+	context.fill();
+
+};
+
+Clarity.prototype.update = function () {
+
+	this.update_player();
+};
+
+Clarity.prototype.draw = function (context) {
+
+	this.draw_map(context, false);
+	this.draw_player(context);
+};
+
+/* Setup of the engine */
+
+window.requestAnimFrame =
+  window.requestAnimationFrame ||
+  window.webkitRequestAnimationFrame ||
+  window.mozRequestAnimationFrame ||
+  window.oRequestAnimationFrame ||
+  window.msRequestAnimationFrame ||
+  function(callback) {
+	return window.setTimeout(callback, 1000 / 60);
+  };
+
+var canvas = document.getElementById('canvas'),
+	ctx = canvas.getContext('2d');
+
+canvas.width = 400;
+canvas.height = 400;
+
+var game = new Clarity();
+	game.set_viewport(canvas.width, canvas.height);
+	game.load_map(map);
+
+	/* Limit the viewport to the confines of the map */
+	game.limit_viewport = true;
+     window.palate = 0;
+function makeTable() {
+    var myArray = map.data;
+    var result = "<table border=1 id='tableactual'>";
+    for(var i=0; i<myArray[0].length; i++) {
+        result += "<tr>";
+        for(var j=0; j<myArray.length; j++){
+try { 
+            result += "<td onclick = 'mapupdate(this)' style='background-color:" + myArray[i][j].colour + "; width:20px; height:20px; color:" + myArray[j].colour + "'>"+myArray[i][j].id;+"</td>";
+        }catch(e){}
+}
+        result += "</tr>";
+    }
+    result += "</table>";
+    
+    var myArray = map.keys;
+        result += "<table border=1 id='tableactual2'><tr>";
+        for(var j=0; j<myArray.length; j++){
+            
+            result += "<td onclick='sendmessage(this)' style='background-color:" + myArray[j].colour + "; width:20px; height:20px;color:" + myArray[j].colour + "'>"+myArray[j].id;+"</td>";
+        }
+   
+        result += "</tr>";
+    result += "</table>";
+    result += "<button onclick='table_to_array()'>load map</button>"
+    result += "<textarea style='width:300px'>[" 
+    var myArray = map.data;
+   
+    for(var i=0; i<myArray.length; i++) {
+        result += "[";
+        for(var j=0; j<myArray[i].length; j++){
+            result += myArray[i][j].id + ",";
+        }
+        result = result.slice(0, -1);
+        result += "],\n"
+    }
+    result = result.slice(0, -2);
+    result += "]"
+        result += "</textarea>"
+    
+    return result;
+
+}
+    
+    function sendmessage(obj) {
+
+        window.palate = obj.textContent;
+    }
+ function table_to_array() {
+     //window.alert("cool")
+                    myData = document.getElementById('tableactual').rows;
+                    //console.log(myData)
+                    my_liste = [];
+                    for (var i = 0; i < myData.length; i++) {
+                            el = myData[i].children;
+                            my_el = [];
+                            for (var j = 0; j < el.length; j++) {
+                                    my_el.push(parseInt(el[j].innerText));
+                            }
+                            my_liste.push(my_el);
+
+                    }
+         map.data = my_liste;
+           
+                    game.load_map(map);
+    document.getElementById("table").innerHTML = makeTable();
+              
+            }
+ setTimeout(function() {document.getElementById("table").innerHTML = makeTable()}, 1000);
+    function mapupdate(obj) {
+     obj.textContent = window.palate;
+        setTimeout(table_to_array,100);   
+    }
+    
+
+var explosions = [];
+
+
+
+function drawExplosion() {
+    if (explosions.length === 0) {
+        return;
+    }
+
+    for (let i = 0; i < explosions.length; i++) {
+        const explosion = explosions[i];
+        const projectiles = explosion.projectiles;
+
+        if (projectiles.length === 0) {
+            explosions.splice(i, 1);
+            return;
+        }
+
+        const projectilesRemove = projectiles.slice();
+
+        for (let ii = 0; ii < projectiles.length; ii++) {
+            const projectile = projectiles[ii];
+
+            // remove projectile if radius is below 0
+            if (projectile.radius < 0) {
+                projectilesRemove.splice(ii, 1);
+                continue;
+            }
+
+            // draw
+            ctx.beginPath();
+            ctx.arc(projectile.x, projectile.y, projectile.radius, Math.PI * 2, 0, false);
+            ctx.closePath();
+            ctx.fillStyle = 'hsl(' + projectile.h + ',' + projectile.s + '%,' + projectile.l + '%)';
+            ctx.fill();
+
+
+            // update
+            projectile.x -= projectile.vx * 1;
+            projectile.y -= projectile.vy * 1;
+            projectile.radius -= projectile.rs;
+
+        }
+
+        explosion.projectiles = projectilesRemove;
+    }
+}
+
+function explosion(x, y) {
+    this.projectiles = [];
+
+    for (let i = 0; i < 100; i++) {
+        this.projectiles.push(
+            new projectile(x, y)
+        );
+    }
+
+}
+
+function bubblelava(x, y) {
+    this.projectiles = [];
+
+    for (let i = 0; i < 2; i++) {
+        this.projectiles.push(
+            new lava(x, y)
+        );
+    }
+
+}
+    function playsound(str) {
+        var s = new SoundEffect(str).generate();
+        s.getAudio().play();
+    }
+   
+    
+function deathAnimation() {
+playsound("111116kBD6ktTjohesn7rN1r3F8fpd1kpMeZLVog7ea5TsDDvvZQ113YFEAHizgJ6VjuVJm6SHKvSECCbbiJ8FdYwWjDUpv5xbgdcKhfnRXwmAzGswGfH6sy");
+ explosions.push(new explosion(game.player.loc.x, game.player.loc.y));   
+    setTimeout(function() {game.load_map(map)}, 1000);
+}
+function projectile(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 2 + Math.random() * 4;
+    this.vx = -50 + Math.random() * 100;
+    this.vy = -50 + Math.random() * 100;
+    this.h = 40;
+    this.s = Math.floor((Math.random() * 100) + 70);
+    this.l = Math.floor((Math.random() * 70) + 30);
+this.rs = 0.02;
+}
+function lava(x, y) {
+    this.x = x + ((Math.random() * 8) - 4);
+    this.y = y;
+    this.radius = 1;
+    this.vx = -0.2 + Math.random() * 0.4;
+    this.vy = Math.random() * 0.2;
+    this.h = 0;
+    this.s = Math.floor((Math.random() * 100) + 70);
+    this.l = Math.floor((Math.random() * 40) + 20);
+this.rs = 0.02;
+}
+var Loop = function() {
+  
+  ctx.fillStyle = '#333';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "30px Arial";
+  ctx.fillStyle = '#444';
+  ctx.fillText("Platformer",10,250);
+  game.update();
+
+  game.draw(ctx);
+ drawExplosion();
+    window.requestAnimFrame(Loop);
+  
+
+};
+
+Loop();
+    
+</script>
+<p>
+  Use the left, right and up arrow keys to move.
+</p>
+<p class="info">
+  Level 8
+  </p>
+
+<br>

@@ -11,7 +11,10 @@
 <img id="gravup" src="textures/gravup.png"/>
 <img id="gravdown" src="textures/gravdown.png"/>
 <img id="timerbutton" src="textures/timerbutton.png"/>
-<img id="timerblock" src="textures/timerblock.png"/>
+<img id="timerblock" src="textures/timerblock.jpg"/>
+<img id="spike" src="textures/spike.png"/>
+<img id="slime" src="textures/slime.jpg"/>
+<img id="saw" src="textures/spike.png"/>
 <style>
   * {
   margin: 0;
@@ -102,15 +105,15 @@ document.onmouseup = function() {
 		{id: 3, name:"water",colour: 'rgba(121, 220, 242, 0.4)',friction: {x: 0.9,y: 0.9},gravity: {x: 0,y: 0.1},jump: 1,fore: 1}, 
 		{id: 4, name:"double",colour: '#777',jump: 1},
 		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0, texture:true},
-		{id: 6, name:"slime",colour: '#0f0', solid: 1, jump: false, friction: {x:0.1, y:0.1} },
+		{id: 6, name:"slime",colour: '#0f0', solid: 1, jump: 0, friction: {x:0.1, y:0.1} },
 		{id: 7, name:"finish",colour: '#FADF73',solid: 0,script: 'next_level', texture:true},
 		{id: 8, name:"lava",colour: '#C93232',solid: 0,script: 'death', texture:true},
-	   	{id: 9, name:"air",colour: '#888', solid: 0},
+	   	{id: 9, name:"spike",colour: '#888', solid: 0, texture:true, script: 'death'},
         {id: 10, name:"gravup",colour: '#F66',solid: 0, bounce: 0, script: 'gravup', texture:true},
         {id: 11, name:"gravdown",colour: '#6F6',solid: 0, bounce: 0, script: 'gravdown', texture:true},
                
         {id: 12, name:"coin",colour: '#FF0', solid: 0, sphere: true, script: 'coincollect'},
-        {id: 13, name:"vines",colour: '#080', solid: 0, gravity: {x:0,y:0} },
+        {id: 13, name:"saw", colour: '#888', solid: 0, texture:true, script: 'death'},
         {id: 14, name:"yellowblock",colour: '#FF0', solid: 1, door: true, hidden: false, texture: true},
         {id: 15, name:"yellowbutton",colour: '#FF0', solid: 0, script: 'yellowbtn', texture: true},
         {id: 16, name:"blueblock",colour: '#0FF', solid: 1, door: true, hidden: false, texture: true},

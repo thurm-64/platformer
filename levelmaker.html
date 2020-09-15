@@ -425,13 +425,6 @@ if(tile.door != undefined) {
 		this.tile_size,
 		this.tile_size
 	);
-ctx.strokeStyle = tile.colour;
-context.moveTo(x, y);
-context.lineTo(x+this.tile_size, y+this.tile_size);
-       context.stroke();
-context.moveTo(x+this.tile_size, y);
-context.lineTo(x, y+this.tile_size);
-       context.stroke();
 
     } else {
 	context.fillStyle = tile.colour;

@@ -103,9 +103,8 @@ document.onmouseup = function() {
         {id: 15, name:"btn-yellow",colour: '#FF0', solid: 0, script: 'yellowbtn'},
         {id: 16, name:"door-blue",colour: '#0FF', solid: 1, door: true, hidden: false},
         {id: 17, name:"btn-blue",colour: '#0FF', solid: 0, script: 'bluebtn'},
-        {id: 17, name:"air",colour: '#888', solid: 0},
-        {id: 18, name:"air",colour: '#888', solid: 0},
-        {id: 19, name:"air",colour: '#888', solid: 0}
+        {id: 18, name:"timerswitch", colour: '#3f3', solid: 0, script: 'timerpush'},
+        {id: 19, name:"timerblock",colour: '#3f3', solid: 0, hidden: true, door:true},
 	]; 
 var map = {
 
@@ -212,7 +211,9 @@ var map = {
 		 coincollect: 'collectCoin(game)',
         
 		bluebtn: 'game.current_map.keys[14].solid = false; game.current_map.keys[14].hidden = true; game.current_map.keys[16].solid = true; game.current_map.keys[16].hidden = false; playsound("111112UYEY3rfGJmVcdVRETfrBjXMjs7FHUTbyMdbSG6Ptdyn9THS5dvvEFovmi3aqtGdRfcGpNfFneSdWNpHenp4qbLSTsNirjbM5zdvcytNTkSsmHdL6Tq")',
-               yellowbtn: 'game.current_map.keys[16].solid = false; game.current_map.keys[16].hidden = true; game.current_map.keys[14].solid = true; game.current_map.keys[14].hidden = false; playsound("111112UYEY3rfGJmVcdVREZEojtTu5BFm2zFGNQCbyoBbCGEjGwPPsfNfDfcXTaJBC7mDHfV3CqwHBVtR7uJLSZeNYi4DLf8YbSbdkbD8WcLY37UdKhCgDJo")'
+               yellowbtn: 'game.current_map.keys[16].solid = false; game.current_map.keys[16].hidden = true; game.current_map.keys[14].solid = true; game.current_map.keys[14].hidden = false; playsound("111112UYEY3rfGJmVcdVREZEojtTu5BFm2zFGNQCbyoBbCGEjGwPPsfNfDfcXTaJBC7mDHfV3CqwHBVtR7uJLSZeNYi4DLf8YbSbdkbD8WcLY37UdKhCgDJo")',
+	timerpush: 'game.current_map.keys[19].solid =true; game.current_map.keys[19].hidden = false; setTimeout(function{game.current_map.keys[19].solid = false; game.current_map.keys[19].hidden = true;},2000);'
+
 	}
 };
 

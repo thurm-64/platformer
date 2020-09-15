@@ -5,6 +5,9 @@
 <img id="bluebutton" src="textures/bluebutton.png"/>
 <img id="yellowblock" src="textures/yellowblock.png"/>
 <img id="yellowbutton" src="textures/yellowbutton.png"/>
+<img id="lava" src="textures/lava.jpg"/>
+<img id="trampoline" src="textures/trampoline.jpg"/>
+<img id="finish" src="textures/finish.png"/>
 <style>
   * {
   margin: 0;
@@ -94,10 +97,10 @@ document.onmouseup = function() {
 		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0, texture: true},
 		{id: 3, name:"water",colour: 'rgba(121, 220, 242, 0.4)',friction: {x: 0.9,y: 0.9},gravity: {x: 0,y: 0.1},jump: 1,fore: 1}, 
 		{id: 4, name:"double",colour: '#777',jump: 1},
-		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0},
+		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0, texture:true},
 		{id: 6, name:"air",colour: '#888', solid: 0},
-		{id: 7, name:"finish",colour: '#FADF73',solid: 0,script: 'next_level'},
-		{id: 8, name:"lava",colour: '#C93232',solid: 0,script: 'death'},
+		{id: 7, name:"finish",colour: '#FADF73',solid: 0,script: 'next_level', texture:true},
+		{id: 8, name:"lava",colour: '#C93232',solid: 0,script: 'death', texture:true},
 		{id: 9, name:"double jump",colour: '#525252',solid: 0,bounce: 0.35},//killer
         {id: 10, name:"grav ^",colour: '#F66',solid: 0, bounce: 0, script: 'gravup'},
         {id: 11, name:"grav v",colour: '#6F6',solid: 0, bounce: 0, script: 'gravdown'},
@@ -916,11 +919,10 @@ this.rs = 0.02;
 }
 var Loop = function() {
   
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = '#888';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.font = "30px Arial";
-  ctx.fillStyle = '#444';
-  ctx.fillText("Platformer",10,250);
+
+
   game.update();
 
   game.draw(ctx);

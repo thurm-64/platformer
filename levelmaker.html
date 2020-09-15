@@ -417,7 +417,7 @@ return;
 	
 
 if(tile.texture != undefined) {
-        ctx.drawImage(tile.texture,x,y)
+        ctx.drawImage(new Image(tile.texture),x,y)
 } else {
 	context.fillStyle = tile.colour;
 	context.fillRect(

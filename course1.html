@@ -219,7 +219,7 @@ var map = {
 		/* you can just use "this" instead of your engine variable ("game"), but Codepen doesn't like it */
 		change_colour: 'game.player.colour = "#"+(Math.random()*0xFFFFFF<<0).toString(16);',
 		/* you could load a new map variable here */
-		next_level: 'window.location.href="level9.html"',
+		next_level: 'currlevel++; map.data = levelsArray[currLevel]; game.load_map(map);',
 		death: 'deathAnimation()',
         gravup: 'game.current_map.gravity= {x: 0, y: -0.3}; canvas.style = "animation:spin 0.5s 1 ease-in-out; animation-fill-mode: forwards"; game.current_map.movement_speed.jump = -6; game.current_map.movement_speed.left = -0.3; game.current_map.movement_speed.right = -0.3; playsound("1wPvSggPBcDFxBPFjpmBnoZ6XLrMNaV5xSZn5TFc79xbo9TTG9DaWasbfvjHYc9rGUS5XwY5wL9SaizSf5tvxQ5qhfA84WbvMrYh7nNeoyg5U5CHaiJ88qhBD")',
          gravdown: 'canvas.style = "animation:spinrev 0.5s 1 ease-in-out; animation-fill-mode: forwards"; game.current_map.gravity= {x: 0, y: 0.3}; game.current_map.movement_speed.jump = 6; game.current_map.movement_speed.left = 0.3; game.current_map.movement_speed.right = 0.3;  playsound("1wPvSggPBcDFxBPFjpmBnoXf9R53isDBNt2JTuWMzN4SqfF46a4gcKcEWknNqtuKYFdRJFdi5h17FSh52Mrn2KVW4saS21cbwiopDW3k1pLxNvUHCK2kBwmCb")',
@@ -229,7 +229,7 @@ var map = {
         
 		bluebtn: 'game.current_map.keys[14].solid = false; game.current_map.keys[14].hidden = true; game.current_map.keys[16].solid = true; game.current_map.keys[16].hidden = false; playsound("111112UYEY3rfGJmVcdVRETfrBjXMjs7FHUTbyMdbSG6Ptdyn9THS5dvvEFovmi3aqtGdRfcGpNfFneSdWNpHenp4qbLSTsNirjbM5zdvcytNTkSsmHdL6Tq")',
                yellowbtn: 'game.current_map.keys[16].solid = false; game.current_map.keys[16].hidden = true; game.current_map.keys[14].solid = true; game.current_map.keys[14].hidden = false; playsound("111112UYEY3rfGJmVcdVREZEojtTu5BFm2zFGNQCbyoBbCGEjGwPPsfNfDfcXTaJBC7mDHfV3CqwHBVtR7uJLSZeNYi4DLf8YbSbdkbD8WcLY37UdKhCgDJo")',
-	timerpush: 'currlevel++; map.data = levelsArray[currLevel]; game.load_map(map);'
+	timerpush: 'game.current_map.keys[19].solid =true; game.current_map.keys[19].hidden = false; setTimeout(function(){game.current_map.keys[19].solid = false; game.current_map.keys[19].hidden = true;},2000);'
 
 	}
 };

@@ -1,5 +1,20 @@
 
 <canvas id="canvas"></canvas>
+<img id="floor" src="textures/floor.png"/>
+<img id="blueblock" src="textures/blueblock.jpg"/>
+<img id="bluebutton" src="textures/bluebutton.png"/>
+<img id="yellowblock" src="textures/yellowblock.png"/>
+<img id="yellowbutton" src="textures/yellowbutton.png"/>
+<img id="lava" src="textures/lava.jpg"/>
+<img id="trampoline" src="textures/trampoline.jpg"/>
+<img id="finish" src="textures/finish.png"/>
+<img id="gravup" src="textures/gravup.png"/>
+<img id="gravdown" src="textures/gravdown.png"/>
+<img id="timerbutton" src="textures/timerbutton.png"/>
+<img id="timerblock" src="textures/timerblock.jpg"/>
+<img id="spike" src="textures/spike.png"/>
+<img id="slime" src="textures/slime.jpg"/>
+<img id="saw" src="textures/saw.png"/>
 <style>
   * {
   margin: 0;
@@ -17,9 +32,8 @@ body {
 
 canvas {
   position:absolute;
-   left:0px;
-top:0px;
-height: 90%;
+   right:0px;
+	height:90%
   display:block;
   margin: 40px auto 20px;
   border: 1px solid #333;
@@ -51,7 +65,7 @@ a {
 <div id = "table" style="position:absolute;top:0px;left:0px"></div>
 <script type='text/javascript' src='https://www.midijs.net/lib/midi.js'></script>
 
-<script src="https://sfxr.me/riffwave.js"></script> <script src="https://sfxr.me/sfxr.js"></script>
+<script src="riffwave.js"></script> <script src="sfxr.js"></script>
 <script>
     
 /*
@@ -82,32 +96,32 @@ THE SOFTWARE.
 document.onmousedown = function() { 
   ++mouseDown;
 }
+	var currLevel = 0;
 document.onmouseup = function() {
   --mouseDown;
 }
    var defaultkeys =  [
-		{id: 0, name:"slow",colour: '#FFF', solid: 0, friction: {x: 0.3, y:0.1}},
+		{id: 0, name:"cobweb",colour: '#FFF', solid: 0, friction: {x: 0.3, y:0.1}},
 		{id: 1, name:"air",colour: '#888', solid: 0},
-		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0},
+		{id: 2, name:"floor",colour: '#555',solid: 1,bounce: 0.0, texture: true},
 		{id: 3, name:"water",colour: 'rgba(121, 220, 242, 0.4)',friction: {x: 0.9,y: 0.9},gravity: {x: 0,y: 0.1},jump: 1,fore: 1}, 
 		{id: 4, name:"double",colour: '#777',jump: 1},
-		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0},
-		{id: 6, name:"air",colour: '#888', solid: 0},
-		{id: 7, name:"finish",colour: '#FADF73',solid: 0,script: 'next_level'},
-		{id: 8, name:"lava",colour: '#C93232',solid: 0,script: 'death'},
-		{id: 9, name:"double jump",colour: '#525252',solid: 0,bounce: 0.35},//killer
-        {id: 10, name:"grav ^",colour: '#F66',solid: 0, bounce: 0, script: 'gravup'},
-        {id: 11, name:"grav v",colour: '#6F6',solid: 0, bounce: 0, script: 'gravdown'},
+		{id: 5, name:"trampoline",colour: '#E373FA',solid: 1,bounce: 1.25, jump:0, texture:true},
+		{id: 6, name:"slime",colour: '#0f0', solid: 1, jump: 0, friction: {x:0.1, y:0.1}, texture:true},
+		{id: 7, name:"finish",colour: '#FADF73',solid: 0,script: 'next_level', texture:true},
+		{id: 8, name:"lava",colour: '#C93232',solid: 0,script: 'death', texture:true},
+	   	{id: 9, name:"spike",colour: '#888', solid: 0, texture:true, script: 'death'},
+        {id: 10, name:"gravup",colour: '#F66',solid: 0, bounce: 0, script: 'gravup', texture:true},
+        {id: 11, name:"gravdown",colour: '#6F6',solid: 0, bounce: 0, script: 'gravdown', texture:true},
                
         {id: 12, name:"coin",colour: '#FF0', solid: 0, sphere: true, script: 'coincollect'},
-        {id: 13, name:"vines",colour: '#080', solid: 0, gravity: {x:0,y:0} },
-        {id: 14, name:"door-yellow",colour: '#FF0', solid: 1, door: true, hidden: false},
-        {id: 15, name:"btn-yellow",colour: '#FF0', solid: 0, script: 'yellowbtn'},
-        {id: 16, name:"door-blue",colour: '#0FF', solid: 1, door: true, hidden: false},
-        {id: 17, name:"btn-blue",colour: '#0FF', solid: 0, script: 'bluebtn'},
-        {id: 17, name:"air",colour: '#888', solid: 0},
-        {id: 18, name:"air",colour: '#888', solid: 0},
-        {id: 19, name:"air",colour: '#888', solid: 0}
+        {id: 13, name:"saw", colour: '#888', solid: 0, texture:true, script: 'death'},
+        {id: 14, name:"yellowblock",colour: '#FF0', solid: 1, door: true, hidden: false, texture: true},
+        {id: 15, name:"yellowbutton",colour: '#FF0', solid: 0, script: 'yellowbtn', texture: true},
+        {id: 16, name:"blueblock",colour: '#0FF', solid: 1, door: true, hidden: false, texture: true},
+        {id: 17, name:"bluebutton",colour: '#0FF', solid: 0, script: 'bluebtn', texture: true},
+        {id: 18, name:"timerbutton", colour: '#3f3', solid: 0, script: 'timerpush', texture:true},
+        {id: 19, name:"timerblock",colour: '#3f3', solid: 0, hidden: true, door:true, texture:true},
 	]; 
 var map = {
 
@@ -142,26 +156,31 @@ var map = {
 	8 death
 	*/
 	data: [
-[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
-[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
 ],
 
 	/* Default gravity of the map */
@@ -209,10 +228,94 @@ var map = {
 		 coincollect: 'collectCoin(game)',
         
 		bluebtn: 'game.current_map.keys[14].solid = false; game.current_map.keys[14].hidden = true; game.current_map.keys[16].solid = true; game.current_map.keys[16].hidden = false; playsound("111112UYEY3rfGJmVcdVRETfrBjXMjs7FHUTbyMdbSG6Ptdyn9THS5dvvEFovmi3aqtGdRfcGpNfFneSdWNpHenp4qbLSTsNirjbM5zdvcytNTkSsmHdL6Tq")',
-               yellowbtn: 'game.current_map.keys[16].solid = false; game.current_map.keys[16].hidden = true; game.current_map.keys[14].solid = true; game.current_map.keys[14].hidden = false; playsound("111112UYEY3rfGJmVcdVREZEojtTu5BFm2zFGNQCbyoBbCGEjGwPPsfNfDfcXTaJBC7mDHfV3CqwHBVtR7uJLSZeNYi4DLf8YbSbdkbD8WcLY37UdKhCgDJo")'
+               yellowbtn: 'game.current_map.keys[16].solid = false; game.current_map.keys[16].hidden = true; game.current_map.keys[14].solid = true; game.current_map.keys[14].hidden = false; playsound("111112UYEY3rfGJmVcdVREZEojtTu5BFm2zFGNQCbyoBbCGEjGwPPsfNfDfcXTaJBC7mDHfV3CqwHBVtR7uJLSZeNYi4DLf8YbSbdkbD8WcLY37UdKhCgDJo")',
+	timerpush: 'currlevel++; map.data = levelsArray[currLevel]; game.load_map(map);'
+
 	}
 };
-
+	var levelsArray = [
+		//level 1
+[[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,7,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,2,2,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,2,2,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,2,1,1,1,1,1,1,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,8,8,8,8,8,8,8,2,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,2],
+[2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,2,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,2,2,2,2,2,2,2],
+[2,1,1,1,1,1,1,2,2,2,12,1,1,2,8,8,8,8,2,2,2,2,2,2,2],
+[2,2,2,2,2,2,2,2,2,2,2,2,2,2,8,8,8,8,2,2,2,2,2,2,2]],
+		//level 2
+		
+		[[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,12,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2],
+[2,2,2,2,8,8,8,8,8,8,8,8,8,8,8,5,8,8,8,8,8,2,2,2,2]],
+		//level 3
+[[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[2,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,18,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+[2,2,2,2,1,1,1,1,19,19,19,19,19,19,19,19,19,19,19,19,2,2,2,2,2],
+[2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,1,2,2,2,2,2],
+[2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,10,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,10,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+[2,1,1,1,1,1,2,8,8,8,8,8,8,8,8,8,8,8,8,8,2,2,2,2,2],
+[2,2,2,2,2,2,2,8,8,8,8,8,8,8,8,8,8,8,8,8,2,2,2,2,2]]
+		
+		];
+	
 /* Clarity engine */
 function collectCoin(gamedat) {
     var xpos = Math.round(gamedat.player.loc.x / map.tile_size);
@@ -385,7 +488,7 @@ map.keys[16].solid = false;
     this.current_map.gravity = {x:0, y:0.3};
     canvas.style = "transform:rotate(0deg);"
 	this.log('Successfully loaded map data.');
-    makeTable();
+    //makeTable();
 	return true;
 };
 
@@ -410,54 +513,24 @@ if(tile.hidden == true) {
 );
 return;
 }
+	
 
-
-    if(tile.sphere == undefined) {
-if(tile.door != undefined) {
-        context.fillStyle = "#555";
-	context.fillRect(
-		x,
-		y,
-		this.tile_size,
-		this.tile_size
-	);
-ctx.strokeStyle = tile.colour;
-context.moveTo(x, y);
-context.lineTo(x+this.tile_size, y+this.tile_size);
-       context.stroke();
-context.moveTo(x+this.tile_size, y);
-context.lineTo(x, y+this.tile_size);
-       context.stroke();
-
-    } else {
+if(tile.texture != undefined) {
+	var img = document.getElementById(tile.name);
+	ctx.drawImage(img,x,y)
+} else {
 	context.fillStyle = tile.colour;
 	context.fillRect(
 		x,
 		y,
 		this.tile_size,
 		this.tile_size
-	);
-}
-    } else {
-        context.fillStyle = "#888";
-	context.fillRect(
-		x,
-		y,
-		this.tile_size,
-		this.tile_size
-	);
-        context.fillStyle = tile.colour;
-        
-        context.moveTo(x + (this.tile_size / 2), y + (this.tile_size / 2));
-        context.beginPath();
-        context.arc(x + (this.tile_size / 2), y + (this.tile_size / 2), this.tile_size / 2, 0, 2 * Math.PI, false);
-        context.fill();
-        context.fillStyle = "#888";
-    }
-ctx.strokeStyle ="#888";
+		)
+	
 
         context.fillStyle = "#888";
-	
+		}
+
 }
 
 Clarity.prototype.draw_map = function (context, fore) {
@@ -604,7 +677,7 @@ Clarity.prototype.move_player = function () {
         if(bounce == 1.25) {
          playsound("57uBnWThQYzkmJKU7FvVZigURnfjZe1KW2hzbNLLx313ygsVx3NYPy65LDiBTKddkNrtXeu1cYGq9jzXu9q8G2uyVHxu6xnRsRYhBPoYXXfkFJaJh6tXTxPCs");   
         }
-		if (((bottom1.solid || bottom2.solid) && !tile.jump) || (this.current_map.movement_speed.jump < 0 && (top1.solid || top2.solid))) {
+		if ((this.current_map.movement_speed.jump >= 0 && (bottom1.solid || bottom2.solid) && !tile.jump) || (this.current_map.movement_speed.jump < 0 && (top1.solid || top2.solid))) {
 			
 			this.player.on_floor = true;
 			this.player.can_jump = true;
@@ -708,7 +781,7 @@ Clarity.prototype.update_player = function () {
 Clarity.prototype.draw_player = function (context) {
 
 	context.fillStyle = this.player.colour;
-
+	context.moveTo(this.player.loc.x, this.player.loc.y);
 	 context.beginPath();
 
 	context.arc(
@@ -720,35 +793,7 @@ Clarity.prototype.draw_player = function (context) {
 	);
 
 	context.fill();
-context.fillStyle = "#000";
-context.beginPath();
-	context.arc(
-		this.player.loc.x + this.tile_size / 1.5 - this.camera.x,
-		this.player.loc.y + this.tile_size / 2.33 - this.camera.y,
-		this.tile_size / 8 - 1,
-		0,
-		Math.PI * 2
-	);
-context.fill();
-context.beginPath();
-	context.arc(
-		this.player.loc.x + this.tile_size / 2.33 - this.camera.x,
-		this.player.loc.y + this.tile_size / 2.33 - this.camera.y,
-		this.tile_size / 8 - 1,
-		0,
-		Math.PI * 2
-	);
-context.fill();
-context.strokeStyle = "#000";
-context.beginPath();
-	context.arc(
-		this.player.loc.x + this.tile_size / 2 - this.camera.x,
-		this.player.loc.y + this.tile_size / 1.5 - this.camera.y,
-		this.tile_size / 4 - 1,
-		0,
-		Math.PI,
-	);
-context.stroke();
+
 };
 
 Clarity.prototype.update = function () {
@@ -787,41 +832,9 @@ var game = new Clarity();
 	/* Limit the viewport to the confines of the map */
 	game.limit_viewport = true;
      window.palate = 0;
-function makeTable() {
-    var myArray = map.data;
- 
-}
-    
-    function sendmessage(obj) {
 
-        window.palate = obj.textContent;
-    }
- function table_to_array() {
-     //window.alert("cool")
-                    myData = document.getElementById('tableactual').rows;
-                    //console.log(myData)
-                    my_liste = [];
-                    for (var i = 0; i < myData.length; i++) {
-                            el = myData[i].children;
-                            my_el = [];
-                            for (var j = 0; j < el.length; j++) {
-                                    my_el.push(parseInt(el[j].innerText));
-                            }
-                            my_liste.push(my_el);
-
-                    }
-         map.data = my_liste;
-           
-                    game.load_map(map);
-     document.getElementById("table").innerHTML = makeTable();
-              
-            }
-    function mapupdate(obj) {
-     obj.textContent = window.palate;
-        setTimeout(table_to_array,100);   
-    }
     
- document.getElementById("table").innerHTML = makeTable();
+
 var explosions = [];
 
 
@@ -900,7 +913,7 @@ function bubblelava(x, y) {
 function deathAnimation() {
 playsound("111116kBD6ktTjohesn7rN1r3F8fpd1kpMeZLVog7ea5TsDDvvZQ113YFEAHizgJ6VjuVJm6SHKvSECCbbiJ8FdYwWjDUpv5xbgdcKhfnRXwmAzGswGfH6sy");
  explosions.push(new explosion(game.player.loc.x, game.player.loc.y));   
-    setTimeout(function() {game.load_map(map)}, 1000);
+   game.load_map(map);
 }
 function projectile(x, y) {
     this.x = x;
@@ -926,11 +939,10 @@ this.rs = 0.02;
 }
 var Loop = function() {
   
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = '#888';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.font = "30px Arial";
-  ctx.fillStyle = '#444';
-  ctx.fillText("Platformer",10,250);
+
+
   game.update();
 
   game.draw(ctx);
